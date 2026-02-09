@@ -1,0 +1,25 @@
+{
+  "bit_browser": {
+    "api_base": "http://127.0.0.1:54345",
+    "default_timeout": 60
+  },
+
+  "firefox_sms": {
+    "token": "6a54fbb2bb7e3a0af6dcd5551126b99d_93819"
+  },
+
+  "paths": {
+      "assets_root": "resources",
+      "avatars": "resources/Avatar",    
+      "images": "resources/images",
+      "names": "resources/names.txt",
+      "logs": "data/logs",
+      "records": "data/records"
+  },
+
+  "runtime": {
+    "headless": false,
+    "debug": true
+  }
+  
+}

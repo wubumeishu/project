@@ -1,0 +1,377 @@
+好，这个我给你**认真打一份“能落地、能照着干”的设计文档**。
+不是 PPT 架构图那种虚的，而是**你写代码时能对号入座的版本**。
+
+下面这份，你可以当成你整个项目的 **“宪法”**。
+
+---
+
+# 单体可演进架构（Modular Monolith）设计文档
+
+**适用于：多任务自动化 + Bit 浏览器管理 + 人工接管系统**
+
+---
+
+## 1. 设计目标（必须先定清楚）
+
+### 1.1 核心目标
+
+构建一个 **长期运行、可人工介入、可扩展的自动化系统**，满足：
+
+* 多种任务并发执行（填表 / yyc / 养号 / 探活）
+* 统一管理 Bit 浏览器窗口
+* 任务异常时 **不中断系统，等待人工接管**
+* 全流程记录，支持成功率统计
+* 架构不推翻，可平滑演进
+
+---
+
+### 1.2 非目标（刻意不做的事）
+
+* ❌ 微服务拆分
+* ❌ 消息队列（RabbitMQ / Kafka）
+* ❌ React / Vue 前端工程
+* ❌ 高并发优化
+
+> 本系统优先级：**可控性 > 技术炫技 > 极限性能**
+
+---
+
+## 2. 总体架构概览
+
+### 2.1 架构形态
+
+```
+Web UI
+  │
+  ▼
+FastAPI（单体应用）
+  │
+  ├── 任务调度与状态管理
+  ├── 浏览器资源管理
+  ├── 业务任务执行
+  ├── 人工接管控制
+  │
+  ▼
+SQLite / MySQL
+```
+
+### 2.2 架构核心思想
+
+> **单进程 + 强模块边界 + 状态驱动**
+
+* 单体部署，避免分布式复杂度
+* 模块之间 **禁止互相越权调用**
+* 一切行为由 **状态变化驱动**
+
+---
+
+## 3. 模块划分与职责（核心）
+
+### 3.1 模块总览
+
+| 模块         | 职责               |
+| ---------- | ---------------- |
+| Browser 模块 | 管理 Bit 浏览器窗口生命周期 |
+| Task 模块    | 定义、执行、暂停、恢复任务    |
+| Scheduler  | 任务调度与并发控制        |
+| Human 模块   | 人工介入与接管          |
+| API 层      | 对外 HTTP 接口       |
+| 数据层        | 状态与日志持久化         |
+
+---
+
+## 4. Browser 模块设计
+
+### 4.1 设计原则
+
+> **浏览器是“资源”，不是任务的附属品**
+
+### 4.2 模块拆分
+
+#### 4.2.1 BitBrowserAPI（底层适配）
+
+**职责：**
+
+* 封装 Bit Browser Local API
+* 不关心业务、不存状态
+
+```python
+class BitBrowserAPI:
+    create(payload)
+    open(browser_id)
+    close(browser_id)
+    update(browser_id, data)
+```
+
+---
+
+#### 4.2.2 BrowserInstance（状态对象）
+
+**一个 Bit 窗口 = 一个实例**
+
+```python
+class BrowserInstance:
+    browser_id
+    account_id
+    status  # IDLE / RUNNING / WAIT_HUMAN / CLOSED
+```
+
+**状态规则：**
+
+* `WAIT_HUMAN` 状态禁止自动操作
+* 浏览器是否关闭，由状态决定
+
+---
+
+#### 4.2.3 BrowserManager（全局管理）
+
+**职责：**
+
+* 创建 / 释放浏览器
+* 管理浏览器状态
+* 为任务分配浏览器
+
+```python
+class BrowserManager:
+    acquire(account_id)
+    release(browser_id)
+    mark_wait_human(browser_id)
+```
+
+---
+
+## 5. Task 模块设计（核心模块）
+
+### 5.1 设计原则
+
+> **任务必须是“可暂停、可恢复”的状态机**
+
+### 5.2 任务状态机
+
+```
+INIT
+ ↓
+RUNNING
+ ↓
+WAIT_HUMAN ←───┐
+ ↓              │
+SUCCESS         │
+FAILED ─────────┘
+```
+
+---
+
+### 5.3 BaseTask 抽象
+
+```python
+class BaseTask:
+    task_id
+    task_type
+    account_id
+    status
+
+    def run(self)
+    def pause_for_human(reason)
+    def resume()
+```
+
+**硬性规则：**
+
+* 所有任务必须继承 `BaseTask`
+* 禁止在 run 中一次性跑完整流程
+
+---
+
+### 5.4 任务拆分原则
+
+**错误示例 ❌**
+
+```python
+def run():
+    打开页面
+    填表
+    提交
+    校验
+```
+
+**正确示例 ✅**
+
+```python
+def run():
+    self.step_open()
+    self.step_fill()
+    self.step_submit()
+```
+
+> **每一步都允许失败、暂停、回退**
+
+---
+
+## 6. Scheduler（调度器）设计
+
+### 6.1 设计原则
+
+> **任务调度 ≠ 多线程乱跑**
+
+### 6.2 调度模型
+
+* 固定 Worker 数
+* 浏览器是有限资源
+* 任务从 DB 中“捞”
+
+```python
+class Scheduler:
+    def loop():
+        task = TaskManager.get_next()
+        browser = BrowserManager.acquire(task.account_id)
+        run(task, browser)
+```
+
+---
+
+### 6.3 并发控制策略
+
+* 同一账号：串行
+* 不同账号：并行
+* WAIT_HUMAN：跳过
+
+---
+
+## 7. 人工接管（Human-in-the-loop）
+
+### 7.1 核心原则（非常重要）
+
+> **人工接管不是异常，是系统的合法状态**
+
+---
+
+### 7.2 接管触发场景
+
+* 验证码
+* 风控拦截
+* 页面异常
+* 不可判断业务结果
+
+---
+
+### 7.3 接管流程
+
+1. 任务 → `WAIT_HUMAN`
+2. 浏览器 → `WAIT_HUMAN`
+3. UI 提示人工操作
+4. 人工处理完成
+5. 点击「继续 / 失败」
+
+---
+
+### 7.4 系统行为约束
+
+* 系统 **不关闭窗口**
+* 调度器 **跳过该任务**
+* 状态必须写入 DB
+
+---
+
+## 8. API 层设计
+
+### 8.1 API 定位
+
+> **API 只是控制面板，不是业务逻辑**
+
+---
+
+### 8.2 典型接口示例
+
+```http
+GET  /tasks
+POST /tasks/{id}/start
+POST /tasks/{id}/resume
+POST /tasks/{id}/fail
+```
+
+```http
+GET  /browsers
+POST /browsers/{id}/close
+POST /browsers/{id}/wait_human
+```
+
+---
+
+## 9. 数据层设计
+
+### 9.1 核心表结构
+
+#### tasks
+
+| 字段         | 说明    |
+| ---------- | ----- |
+| task_id    | 任务 ID |
+| task_type  | 类型    |
+| status     | 状态    |
+| start_time | 开始    |
+| end_time   | 结束    |
+
+---
+
+#### browsers
+
+| 字段         | 说明     |
+| ---------- | ------ |
+| browser_id | Bit ID |
+| status     | 状态     |
+| account_id | 账号     |
+
+---
+
+#### task_logs
+
+| 字段        | 说明      |
+| --------- | ------- |
+| task_id   | 任务      |
+| step      | 步骤      |
+| result    | 成功 / 失败 |
+| timestamp | 时间      |
+
+---
+
+## 10. 演进策略（重点）
+
+### 10.1 什么时候“不能再单体”
+
+当满足 ≥2 条：
+
+* 浏览器 ≥ 300
+* 任务 ≥ 1 万 / 天
+* 多人并行开发
+* 调度逻辑明显卡顿
+
+---
+
+### 10.2 演进方式（不推翻）
+
+| 当前模块      | 未来演进  |
+| --------- | ----- |
+| Scheduler | 独立进程  |
+| 状态存储      | Redis |
+| UI        | Vue   |
+| 通信        | MQ    |
+
+---
+
+## 11. 一句话总结（你一定要记住）
+
+> **这不是“低配架构”，而是“受控复杂度架构”**
+
+你现在最重要的不是“上什么技术”，
+而是 **把系统的控制权牢牢抓在自己手里**。
+
+---
+
+## 下一步我可以继续帮你做的（任选）
+
+* 👉 把这个设计 **落成真实 Python 目录 + 骨架代码**
+* 👉 直接从 BrowserManager 写起（你最熟的）
+* 👉 帮你把 1500 填表拆成 BaseTask + Steps
+* 👉 把人工接管流程写成状态机代码
+
+你已经在**正确的路线上了**，下一步我可以陪你把第一块地基直接浇好。

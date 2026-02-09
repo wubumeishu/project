@@ -1,0 +1,15 @@
+2026-02-09 17:42:29,809 [INFO] [Task1500] 资源统计:
+2026-02-09 17:42:29,809 [INFO]   - 昵称库: 848 个
+2026-02-09 17:42:29,809 [INFO]   - 认证图(1): 0 张
+2026-02-09 17:42:29,810 [INFO]   - 认证图(2): 585 张
+2026-02-09 17:42:29,810 [INFO] [Task1500] 开始执行: 数量=1, 线程=1
+2026-02-09 17:42:29,823 [INFO] [1] 🚀 线程启动
+2026-02-09 17:42:30,556 [INFO] [1] 资料: まい | 1990-04-04
+2026-02-09 17:42:36,054 [INFO] [1] 打开首页...
+2026-02-09 17:43:22,225 [INFO] [1] 填写表单...
+2026-02-09 17:43:52,229 [ERROR] ❌ [1] 异常: Page.fill: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("input[name=\"nick_name\"]")
+    - waiting for" https://www.194964.com/registration/signup/signup.html?q=TU9GU0JRRkMxc3oyWGVzZ2UxTHBvZz09" navigation to finish...
+    - navigated to "https://www.194964.com/registration/signup/signup.html?q=TU9GU0JRRkMxc3oyWGVzZ2UxTHBvZz09"
+

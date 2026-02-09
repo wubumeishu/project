@@ -1,0 +1,38 @@
+2026-02-09 19:28:00,022 [INFO] [init] 资源统计: 昵称(848) 认证图(585)
+2026-02-09 19:28:00,022 [INFO] [run] 开始执行: 数量=3, 线程=3
+2026-02-09 19:28:00,023 [INFO] [1][start] 🚀 线程启动
+2026-02-09 19:28:00,651 [INFO] [1][get_phone] 📱 获取号码: 08078835169
+2026-02-09 19:28:00,662 [INFO] [1][gen_data] 资料: もにか | 1973-07-09 | 图片类型: 2(驾驶证)
+2026-02-09 19:28:03,024 [INFO] [2][start] 🚀 线程启动
+2026-02-09 19:28:03,773 [INFO] [2][get_phone] 📱 获取号码: 08023083734
+2026-02-09 19:28:03,783 [INFO] [2][gen_data] 资料: きく | 1984-05-20 | 图片类型: 2(驾驶证)
+2026-02-09 19:28:06,025 [INFO] [3][start] 🚀 线程启动
+2026-02-09 19:28:06,127 [INFO] [1][browser_start] 🌏 浏览器启动 (ID: 0a2899037ca3421e8a5c2b9f6b5a3a38)
+2026-02-09 19:28:06,252 [INFO] [1][window_seq] 窗口序号: 8782
+2026-02-09 19:28:06,404 [INFO] [1][open_url] 打开首页: https://www.194964.com/top.php
+2026-02-09 19:28:06,510 [INFO] [3][get_phone] 📱 获取号码: 08021256696
+2026-02-09 19:28:06,520 [INFO] [3][gen_data] 资料: あんず | 1990-12-23 | 图片类型: 2(驾驶证)
+2026-02-09 19:28:09,183 [ERROR] ❌ [1][task_crash] ❌ 异常: Page.goto: Target page, context or browser has been closed
+Call log:
+  - navigating to "https://www.194964.com/top.php", waiting until "domcontentloaded"
+2026-02-09 19:28:09,462 [INFO] [2][browser_start] 🌏 浏览器启动 (ID: 4f323aaf222e493e9b01de600dfe31e8)
+2026-02-09 19:28:09,673 [INFO] [2][window_seq] 窗口序号: 8783
+2026-02-09 19:28:09,683 [INFO] [1][close] 任务结束，保留窗口 (auto_close=False)
+2026-02-09 19:28:09,842 [INFO] [2][open_url] 打开首页: https://www.194964.com/top.php
+2026-02-09 19:28:11,954 [INFO] [3][browser_start] 🌏 浏览器启动 (ID: 23615cba367b49b8ac72e3fb34289d32)
+2026-02-09 19:28:12,075 [INFO] [3][window_seq] 窗口序号: 8784
+2026-02-09 19:28:12,246 [INFO] [3][open_url] 打开首页: https://www.194964.com/top.php
+2026-02-09 19:28:20,063 [INFO] [3][click_start] 点击“無料ではじめる”
+2026-02-09 19:28:22,170 [INFO] [3][select_area] 选择一级地域: 福島
+2026-02-09 19:28:23,203 [INFO] [3][select_city] 选择二级城市: 75
+2026-02-09 19:28:24,121 [INFO] [2][click_start] 点击“無料ではじめる”
+2026-02-09 19:28:26,959 [INFO] [3][step3_submit] 第三页提交完成
+2026-02-09 19:28:28,024 [INFO] [2][select_area] 选择一级地域: 愛知
+2026-02-09 19:28:28,964 [WARNING] ⚠️ [3][upload_avatar] 头像上传异常: Locator.click: Target page, context or browser has been closed
+2026-02-09 19:28:29,078 [INFO] [2][select_city] 选择二级城市: 483
+2026-02-09 19:28:32,975 [ERROR] ❌ [3][task_crash] ❌ 异常: 第六页(手机号)失败: Locator.wait_for: Target page, context or browser has been closed
+2026-02-09 19:28:33,434 [INFO] [2][step3_skip] 第三页填写跳过或失败: Locator.select_option: Target page, context or browser has been closed
+2026-02-09 19:28:33,727 [INFO] [3][close] 任务结束，保留窗口 (auto_close=False)
+2026-02-09 19:28:35,458 [WARNING] ⚠️ [2][upload_avatar] 头像上传异常: Locator.click: Target page, context or browser has been closed
+2026-02-09 19:28:39,469 [ERROR] ❌ [2][task_crash] ❌ 异常: 第六页(手机号)失败: Locator.wait_for: Target page, context or browser has been closed
+2026-02-09 19:28:40,042 [INFO] [2][close] 任务结束，保留窗口 (auto_close=False)
